@@ -625,14 +625,65 @@ function MainScreen() {
   //   });
   // };
 
-  const onFinish = (values)=>{
+  const onFinish = (values) => {
+    console.log("target", values);
+    const randomId = Math.floor(Math.random() * 1000)
+    setLocalID(randomId)
+    
+    // setLocalText((prevState) => ({ ...prevState, text: values?.text }));
+    const data = {
+      duration: values?.duration || 30,
+      cfg_coef: values?.cfg_coef || 7,
+      text: values?.text,
+      model: "large",
+      temperature:1,
+      segments: 1,
+      overlap:4.5,
+      topk: 0,
+      topp: 0,
+      audioID: randomId,
+    }
+    console.log('Received values of form: ', data);
+    if(values.method) {
+      onSampleFinish(values, randomId)
+      
+    } else {
+    // AI Generator
+    console.log("Generating using AI");
+    // axios.post(`http://ai.choira.io:5000/`,{
+    //   data:data
+    // }).then((audioResp)=>{
+    //     console.log("Resp Submitted ", audioResp)
+    //     message.loading(`Audio generation in progress...`)
+    //     // setTimeout(messageApi.destroy, 10000);
+    // });
+    message.loading(`Audio generation in progress...`,0);
+    socket.emit('generate-song',{prompt:values.text})
+  //   axios.post(`https://pipeline.choira.io/api/song-gen`,{
+  //     user_prompt: values.text,
 
-    setCurrentAudio(prevState => ({ ...prevState, output_filename:'' }));
-    socket.emit('generate-music-large',{duration:values.duration,prompt:values.text})
-
+  //   },{
+  //     timeout: 300000, // Timeout set to 5 minutes (in milliseconds)
+  //   }).then((audioResp)=>{
+  //     console.log("Resp Submitted ", audioResp)
+  //     // message.loading(`Audio generation in progress...`)
+  //     message.destroy();
+  //     message.success(`Audio generation completed`)
+  //     // let data =currentAudio
+  //     // data.output_filename = audioResp.audio_url
+  //     console.log(audioResp.data.audio_url,"audioResp.audio_urlaudioResp.audio_urlaudioResp.audio_urlaudioResp.audio_url")
+  //     setCurrentAudio((prevState) => ({
+  //       ...prevState,
+  //       output_filename: audioResp.data.audio_url,
+  //       audioID: randomId,
+  //     }));
+  //     // setTimeout(messageApi.destroy, 10000);
+  // });
+    }
     // IMG Generator
     const apiKey = 'DW7a71BLsHHon1Q6oYe5vrY7jHqp1dIA';
     const textUrl = values?.text.substring(0,50);
+    console.log("textUrl", textUrl);
     const formData = new FormData();
     formData.append('q', textUrl);
     formData.append('YOUR_API_KEY', apiKey);
@@ -650,8 +701,7 @@ function MainScreen() {
         // console.log("imgData Submitted ", imgData.data.data[0].images)
         if(imgData.data.data[0]?.images) setLocalText((prevState) => ({ ...prevState, img: imgData.data.data[0].images.original.url }))
     });
-    
-  }
+  };
 
   useEffect(() => {
     console.log(socket?.id)
@@ -670,6 +720,25 @@ function MainScreen() {
         ...prevState,
         audioID: data.file_name,
         output_filename: `https://pipeline.choira.io/api/audio/${data.file_name}`,
+      }));
+      // setCurrentAudio(prevState => ({ ...prevState, showWave: false }));
+      // message.success(`${data.output_filename} generated!`)
+      // setTimeout(messageApi.destroy, 1000);    
+    })
+    socket.on('song_generated',(data)=>{
+      const randomId = Math.floor(Math.random() * 1000)
+      console.log("New song file created",data);
+      message.destroy();
+      //     message.success(`Audio generation completed`)
+      // setCurrentAudio(data)
+      message.success(`Audio generation completed`)
+      // let data =currentAudio
+      // data.output_filename = audioResp.audio_url
+      console.log(data.data.audio_url,"audioResp.audio_urlaudioResp.audio_urlaudioResp.audio_urlaudioResp.audio_url")
+      setCurrentAudio((prevState) => ({
+        ...prevState,
+        audioID: data.data.file_name,
+        output_filename: `https://pipeline.choira.io/api/audio/${data.data.file_name}`,
       }));
       // setCurrentAudio(prevState => ({ ...prevState, showWave: false }));
       // message.success(`${data.output_filename} generated!`)
@@ -741,9 +810,9 @@ function MainScreen() {
                   <div className="ant-muse">
                     {/* <Text>Choira</Text> */}
                     {/* <Title level={5}>OASIS</Title> */}
-                    <BeatingIndicator title={"OSIS"}/>
+                    <BeatingIndicator title={"OASIS"}/>
                     <Paragraph className="lastweek mb-36">
-                    Our Osis is based on artistic intelligence and will help you to create amazing and the most unique music track very easily from your text description.
+                    Our OASIS is based on artistic intelligence and will help you to create amazing and the most unique music track very easily from your text description.
                     
                     </Paragraph>
 
